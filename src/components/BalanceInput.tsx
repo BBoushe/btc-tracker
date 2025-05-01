@@ -4,8 +4,11 @@ import {FormEvent, useState} from "react";
 import {useRouter} from "next/navigation";
 import {addInvestment} from "@/util/api_calls";
 
+type BalanceInputProps = {
+    onSuccess?: () => void;
+}
 
-export default function BalanceInput() {
+export default function BalanceInput({ onSuccess } : BalanceInputProps ) {
     const [ amount, setAmount ] = useState<string>("");
     const [ quantity, setQuantity ] = useState<string>("");
     const [ isSubmitting, setIsSubmitting ] = useState<boolean>(false);
@@ -17,11 +20,18 @@ export default function BalanceInput() {
         if(!amount) return;
 
         setIsSubmitting(true);
-        await addInvestment(parseFloat(amount), parseFloat(quantity));
 
-        setAmount("");
-        setIsSubmitting(false);
-        router.refresh();
+        try {
+            await addInvestment(parseFloat(amount), parseFloat(quantity));
+            router.refresh();
+            setAmount("");
+            setQuantity("");
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSubmitting(false); // always reached
+            if (onSuccess) onSuccess();
+        }
     }
 
 
@@ -58,6 +68,13 @@ export default function BalanceInput() {
                 <button type="submit" className="btn btn-success btn-md w-75" disabled={isSubmitting}>
                     {isSubmitting ? "Adding…" : "Add Investment"}
                 </button>
+
+                <div className="mt-3">
+                    <button
+                        onClick={onSuccess}
+                        className="btn btn-secondary"> Back
+                    </button>
+                </div>
             </form>
         </div>
     );

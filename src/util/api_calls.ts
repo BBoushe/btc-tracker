@@ -1,7 +1,7 @@
 export async function getPriceEUR(): Promise<number> {
     const res = await fetch(
         "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur",
-        { cache: 'no-cache' }
+        { next: { revalidate: 60 } }
     );
 
     if(!res.ok) throw new Error(res.statusText);
@@ -12,8 +12,9 @@ export async function getPriceEUR(): Promise<number> {
 }
 
 export async function getTotalInvested() : Promise<number> {
-    const res = await fetch('http://localhost:3000/api/investments/totalInvested',
-        { cache: 'no-store' });
+    const res = await fetch('/api/investments/totalInvested',
+        { next: { revalidate: 300 }
+    });
 
     if(!res.ok) throw new Error("Failed to fetch total investments");
 
@@ -22,8 +23,9 @@ export async function getTotalInvested() : Promise<number> {
 }
 
 export async function getBtcQuantity() : Promise<number> {
-    const res = await fetch('http://localhost:3000/api/investments/btcQuantity',
-        { cache: 'no-store' });
+    const res = await fetch('/api/investments/btcQuantity',
+        { next: { revalidate: 300 }
+    });
 
     if(!res.ok) throw new Error("Failed to fetch total BTC quantity");
 
@@ -32,9 +34,9 @@ export async function getBtcQuantity() : Promise<number> {
 }
 
 export async function addInvestment(amount: number, btc_q: number) {
-    await fetch("http://localhost:3000/api/investments", {
+    await fetch("/api/investments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ amount: amount, btc_q: btc_q }),
-    })
+    });
 }
