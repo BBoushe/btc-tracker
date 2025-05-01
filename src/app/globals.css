@@ -27,3 +27,16 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+/* globals.css or your form's CSS module */
+.form-floating label {
+  color: #ccc;
+}
+
+.form-control::placeholder {
+  color: transparent;
+}
+
+.form-control:focus::placeholder {
+  color: transparent;
+}

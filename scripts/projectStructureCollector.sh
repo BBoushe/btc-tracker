@@ -12,8 +12,7 @@
 #   - Skips any paths that match the relative path (e.g., "data/someFolder") or the basename
 #     (e.g., "node_modules") from the ignoredPaths list.
 
-# Exit on error or using an uninitialized variable
-#set -o errexit
+declare -a ignoredList=()
 set -o nounset
 
 ###############################################################################
@@ -28,13 +27,19 @@ fi
 targetFolder="$1"
 outputFile="$2"
 shift 2
-ignoredList=("$@")
+# Populate only if extra args
+if (( $# > 0 )); then
+  ignoredList=( "$@" )
+fi
 
 # Convert targetFolder to an absolute path
 targetFolderAbsolute="$(cd "$targetFolder" && pwd)"
 
 # Clear (or create) the output file
 > "$outputFile"
+
+# Enable nullglob so empty folders don't cause errors ***
+shopt -s nullglob
 
 ###############################################################################
 # 2. Define function to print folder structure
@@ -57,15 +62,11 @@ print_structure() {
   # ---------------------------------------------------------------------------
   # (A) Check if we should ignore this folder
   # ---------------------------------------------------------------------------
-  for ignored in "${ignoredList[@]}"; do
+  for ignored in "${ignoredList[@]:-}"; do
     # Normalize the ignored path as well (remove trailing slash if any)
     local normalizedIgnored="${ignored%/}"
     # If the normalized relative path matches exactly the ignored path
-    if [[ "$normalizedRelativePath" == "$normalizedIgnored" ]]; then
-      return
-    fi
-    # Or if the folder name alone matches the ignored pattern
-    if [[ "$baseName" == "$normalizedIgnored" ]]; then
+    if [[ "$normalizedRelativePath" == "$normalizedIgnored" ]] || [[ "$baseName" == "$normalizedIgnored" ]]; then
       return
     fi
   done
@@ -79,13 +80,11 @@ print_structure() {
   # (C) Get contents of the folder (files, subfolders). If there's an error,
   #     or it's unreadable, skip it gracefully.
   # ---------------------------------------------------------------------------
-  local entries=()
-  { entries=("$folder"/*); } 2>/dev/null || true
-
+  local entries=("$folder"/*)
   # If expansion gave us no valid entry (like an empty folder or unreadable directory),
   # then skip further processing.
-  if [ ! -e "${entries[0]:-}" ]; then
-    return
+  if [ ${#entries[@]} -eq 0 ]; then
+      return
   fi
 
   # ---------------------------------------------------------------------------

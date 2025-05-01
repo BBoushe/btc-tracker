@@ -1,28 +1,19 @@
 "use client";
 
-import { useTransition } from "react";
+import {memo, useTransition} from "react";
+import {getPriceEUR} from "@/util/api_calls";
+import {toCurrency} from "@/components/Info";
 
-export default function RefreshButton(){
+function RefreshButton(){
     const [isPending, startTransition] = useTransition();
 
     async function handleRefresh(){
         startTransition(async () => {
-            const result = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur');
-
-            if (!result.ok) {
-                throw new Error("Failed to fetch price.\n" + result.statusText);
-            }
-
-            const data = await result.json();
-
-            const newPrice = data.bitcoin.eur.toLocaleString('de-DE', {
-                style: 'currency',
-                currency: 'EUR',
-            });
+            const newPrice = await getPriceEUR();
 
             const priceElement = document.getElementById("price");
             if(priceElement){
-                priceElement.textContent = newPrice;
+                priceElement.textContent = toCurrency(newPrice);
             }
         });
     }
@@ -36,3 +27,5 @@ export default function RefreshButton(){
         </button>
     );
 }
+
+export default memo(RefreshButton);
