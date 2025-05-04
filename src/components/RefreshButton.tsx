@@ -1,29 +1,17 @@
-"use client";
+import {memo} from "react";
 
-import {memo, useTransition} from "react";
-import {getPriceEUR} from "@/util/api_calls";
-import {toCurrency} from "@/components/Info";
+type RefreshButtonProps = {
+    onRefresh: () => Promise<void>;
+    isPending: boolean;
+}
 
-function RefreshButton(){
-    const [isPending, startTransition] = useTransition();
-
-    async function handleRefresh(){
-        startTransition(async () => {
-            const newPrice = await getPriceEUR();
-
-            const priceElement = document.getElementById("price");
-            if(priceElement){
-                priceElement.textContent = toCurrency(newPrice);
-            }
-        });
-    }
-
+function RefreshButton({ onRefresh, isPending } : RefreshButtonProps) {
     return (
         <button
-            onClick={handleRefresh}
+            onClick={onRefresh}
             className="btn btn-warning btn-sm"
             disabled={isPending}>
-            {isPending ? "Refreshing..." : "Refresh"}
+            {isPending ? "Refreshing…" : "Refresh"}
         </button>
     );
 }

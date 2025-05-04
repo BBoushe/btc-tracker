@@ -3,37 +3,38 @@
 import {FormEvent, useState} from "react";
 import {useRouter} from "next/navigation";
 import {addInvestment} from "@/util/api_calls";
+import {usePriceUpdate} from "@/app/contexts/PriceUpdateContext";
 
-type BalanceInputProps = {
-    onSuccess?: () => void;
-}
-
-export default function BalanceInput({ onSuccess } : BalanceInputProps ) {
+export default function BalanceInput() {
     const [ amount, setAmount ] = useState<string>("");
     const [ quantity, setQuantity ] = useState<string>("");
     const [ isSubmitting, setIsSubmitting ] = useState<boolean>(false);
+
+    const { code, triggerUpdate } = usePriceUpdate();
     const router = useRouter();
 
     async function handleSubmit(e: FormEvent) {
         e.preventDefault();
-
         if(!amount) return;
 
         setIsSubmitting(true);
 
         try {
-            await addInvestment(parseFloat(amount), parseFloat(quantity));
+            console.log(code);
+            await addInvestment(parseFloat(amount), parseFloat(quantity), code);
+            console.log("The investment has been added");
+            triggerUpdate();
             router.refresh();
+            // return to Info screen
+            router.push(`/?code=${code}`);
             setAmount("");
             setQuantity("");
         } catch (err) {
             console.error(err);
         } finally {
             setIsSubmitting(false); // always reached
-            if (onSuccess) onSuccess();
         }
     }
-
 
     return (
         <div className="d-flex justify-content-center align-items-center mt-4"
@@ -68,13 +69,6 @@ export default function BalanceInput({ onSuccess } : BalanceInputProps ) {
                 <button type="submit" className="btn btn-success btn-md w-75" disabled={isSubmitting}>
                     {isSubmitting ? "Adding…" : "Add Investment"}
                 </button>
-
-                <div className="mt-3">
-                    <button
-                        onClick={onSuccess}
-                        className="btn btn-secondary"> Back
-                    </button>
-                </div>
             </form>
         </div>
     );

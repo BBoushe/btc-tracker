@@ -14,8 +14,13 @@ export class Investment {
     amountEuros!: number;
 
     @Column('real')
-    btc_q!: number;
+    quantity!: number;
+
+    @Column({ length: 5 })
+    asset_code!: string;
 
     @CreateDateColumn()
     createdAt!: Date;
+
+
 }
